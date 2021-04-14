@@ -1,49 +1,69 @@
 package web.commands;
 
 import business.exceptions.UserException;
+import business.services.BmiFacade;
+import business.services.BmiUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CalcBMICommand extends CommandUnprotectedPage {
+    private BmiFacade bmiFacade;
+
     public CalcBMICommand(String pageToShow) {
         super(pageToShow);
+        this.bmiFacade = new BmiFacade(database);
     }
 
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) throws UserException {
-        Double height = 0.0;
-        Double weight = 0.0;
-        Double bmi = 0.0;
+        int user_id=1;
+        double height = 0.0;
+        double weight = 0.0;
+        double bmi = 0.0;
+        String category="";
+        String gender= request.getParameter("gender");
+        int sport_id = Integer.parseInt(request.getParameter("sport"));
 
-        String category = "";
+        String[] hobbies = request.getParameterValues("hobby");
+        List<String> hobbyListStrings =null;
+        if (hobbies != null){
+            hobbyListStrings= Arrays.asList(hobbies);
+        }
+
+        List<Integer> hobbyListIntegers = new ArrayList<>();
+        for (String  hobbyListItem : hobbyListStrings) {
+            hobbyListIntegers.add(Integer.parseInt(hobbyListItem));
+        }
+
+
+
 
         try {
             height = Double.parseDouble(request.getParameter("height"));
             weight = Double.parseDouble(request.getParameter("weight"));
         } catch (NumberFormatException e) {
-            throw new UserException("husk at du skal indtaste to heltal");
+            request.setAttribute("error", "husk at du skal indtaste to heltal i formularen.");
+            return "index";
+//            throw new UserException("husk at du skal indtaste to heltal");
         }
 
-        bmi = weight / ((height / 100) * (height / 100));
+        bmi = BmiUtil.calcBMI(height, weight);
+        category = BmiUtil.getCategory(bmi);
 
-        if (bmi < 18.5) {
-            category = "undervægtig";
-        } else {
-            if (bmi < 25) {
-                category = "normalvægtig";
-            } else {
-                if (bmi < 30) {
-                    category = "overvægtig";
-                } else {
-                    category = "svært overvægtig";
-                }
-            }
-        }
-        request.setAttribute("bmi",bmi);
-        request.setAttribute("height",height);
-        request.setAttribute("weight",weight);
-        request.setAttribute("category",category);
+        request.setAttribute("bmi", String.format("%.2f", bmi));
+        request.setAttribute("height", height);
+        request.setAttribute("weight", weight);
+        request.setAttribute("category", category);
+        request.setAttribute("gender", gender);
+        request.setAttribute("sport_id", sport_id);
+        request.setAttribute("hobbies", hobbyListIntegers);
+
+        bmiFacade.insertBmiEntry(bmi, height, weight, category, gender, sport_id, user_id, hobbyListIntegers);
+
         return pageToShow;
     }
 }
