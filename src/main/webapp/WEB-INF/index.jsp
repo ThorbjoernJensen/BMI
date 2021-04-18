@@ -41,10 +41,11 @@
                     <label for="sport">din primære idræt</label>
 
                     <select name="sport" id="sport">
-                        <option value="1">Fodbold</option>
-                        <option value="2">Gymnastik</option>
-                        <option value="3">Yoga</option>
-                        <option value="4">Badminton</option>
+                        <c:forEach var="sport" items="${applicationScope.sportList}">
+                        <option value="${sport.sport_id}">${sport.name}</option>
+
+                        </c:forEach>
+
                     </select>
                     <br>
 
@@ -61,6 +62,7 @@
                         </p>
                     </c:if>
                     <input type="submit" value="Beregn BMI" class="btn btn-primary">
+
                 </form>
             </div>
 

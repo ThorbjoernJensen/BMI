@@ -1,6 +1,7 @@
 package web;
 
 import business.exceptions.UserException;
+import business.persistence.BmiMapper;
 import business.persistence.Database;
 import web.commands.*;
 
@@ -39,6 +40,12 @@ public class FrontController extends HttpServlet
         }
 
         // Initialize whatever global datastructures needed here:
+        BmiMapper bmiMapper = new BmiMapper(database);
+        try {
+            getServletContext().setAttribute("sportList", bmiMapper.getAllSports());
+        } catch (UserException ex) {
+            Logger.getLogger("web").log(Level.SEVERE, ex.getMessage(), ex);
+        }
 
     }
 
@@ -71,6 +78,7 @@ public class FrontController extends HttpServlet
         catch (UnsupportedEncodingException | UserException ex)
         {
             request.setAttribute("problem", ex.getMessage());
+            Logger.getLogger("web").log(Level.SEVERE, ex.getMessage(), ex);
             Logger.getLogger("web").log(Level.SEVERE, ex.getMessage(), ex);
             request.getRequestDispatcher("/errorpage.jsp").forward(request, response);
         }
